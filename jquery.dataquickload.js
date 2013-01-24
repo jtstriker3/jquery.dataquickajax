@@ -15,8 +15,11 @@
             var pageSize = $(this).data('ajax-pagesize') || undefined;
             var pagerID = $(this).data('ajax-pagerid') != undefined ? '#' + $(this).data('ajax-pagerid') : null;
             var append = $(this).data('ajax-append') || false;
+            var customFilters = eval($(this).data('customFilters') || undefined);
 
             this.init = function () {
+                $(pagerID).hide();
+
                 if (event == "documentReady") {
                     that.quickLoad();
                 } else {
@@ -91,6 +94,15 @@
                         urlBuilder += '&skip=' + (page * pageSize);
                     }
                 }
+
+                if (customFilters != undefined) {
+                    if (urlBuilder == '')
+                        urlBuilder = '?';
+                    else
+                        urlBuilder += '&';
+                    urlBuilder += customFilters(that);
+                }
+
                 if (append) {
                     $.get(urlBuilder, function (data) {
                         that.loaded();
@@ -105,7 +117,11 @@
             };
 
             this.loaded = function () {
+                $(pagerID).fadeIn();
                 $(that).find('[data-ajax-url]').dataQuickAjax(dataOnload);
+                $(that).trigger({
+                    type: "dataAjaxLoaded"
+                });
                 if (dataOnload != undefined)
                     dataOnload($(that));
             }
