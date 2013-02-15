@@ -16,6 +16,7 @@
             var pagerID = $(this).data('ajax-pagerid') != undefined ? '#' + $(this).data('ajax-pagerid') : null;
             var append = $(this).data('ajax-append') || false;
             var customFilters = eval($(this).data('customFilters') || undefined);
+            var renderTemplate = eval($(this).data('renderTemplate') || undefined);
 
             this.init = function () {
                 $(pagerID).hide();
@@ -105,25 +106,33 @@
 
                 if (append) {
                     $.get(urlBuilder, function (data) {
-                        that.loaded();
-                        $(that).html(html + data);
+                        that.loaded(html + data);
                     });
                 }
                 else {
-                    $(that).load(urlBuilder, function () {
-                        that.loaded();
+                    $.get(urlBuilder, function (data) {
+                        that.loaded(data);
                     });
                 }
             };
 
-            this.loaded = function () {
+            this.loaded = function (data) {
+
+                if (renderTemplate) {
+                    renderTemplate(data);
+                }
+                else
+                    $(that).html(data);
+
+                if (dataOnload != undefined)
+                    dataOnload($(that), data);
+
                 $(pagerID).fadeIn();
                 $(that).find('[data-ajax-url]').dataQuickAjax(dataOnload);
                 $(that).trigger({
                     type: "dataAjaxLoaded"
                 });
-                if (dataOnload != undefined)
-                    dataOnload($(that));
+
             }
 
             this.trigger = function () {
