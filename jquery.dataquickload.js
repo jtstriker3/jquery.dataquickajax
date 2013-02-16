@@ -18,6 +18,7 @@
             var customFilters = eval($(this).data('customFilters') || undefined);
             var renderTemplate = eval($(this).data('renderTemplate') || undefined);
 
+
             this.init = function () {
                 $(pagerID).hide();
 
@@ -72,7 +73,7 @@
 
             this.quickLoad = function (e) {
                 var html = $(that).html();
-                $(that).append("<b>loading...</b>");
+                $(that).append("<b class='quickLoad'> loading...</b>");
                 var urlBuilder = url;
                 var filterVal = '';
                 if (filterID != null) {
@@ -109,30 +110,25 @@
                         that.loaded(html + data);
                     });
                 }
-                else {
-                    $.get(urlBuilder, function (data) {
-                        that.loaded(data);
-                    });
-                }
+                else
+                    $.get(urlBuilder, that.loaded);
             };
 
             this.loaded = function (data) {
-
                 if (renderTemplate) {
-                    renderTemplate(data);
+                    renderTemplate(data, $(that));
                 }
                 else
                     $(that).html(data);
-
-                if (dataOnload != undefined)
-                    dataOnload($(that), data);
+                $(".quickLoad").remove();
 
                 $(pagerID).fadeIn();
                 $(that).find('[data-ajax-url]').dataQuickAjax(dataOnload);
                 $(that).trigger({
                     type: "dataAjaxLoaded"
                 });
-
+                if (dataOnload != undefined)
+                    dataOnload($(that));
             }
 
             this.trigger = function () {
