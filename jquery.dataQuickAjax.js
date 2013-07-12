@@ -1,7 +1,8 @@
-﻿(function ($) {
+(function ($) {
     $.fn.dataQuickAjax = function (onLoad) {
         this.each(function () {
             var that = this;
+            var $element = $(this);
             var url = $(this).attr('data-ajax-url');
             var event = $(this).attr('data-ajax-event') || 'click';
             var trigger = $(this).attr('data-ajax-trigger');
@@ -9,7 +10,7 @@
             var requestType = $(this).attr('data-ajax-type') || 'get';
             var deleteConfirm = $(this).attr('data-delete-text') || "Are you sure you want to delete this?";
             var dataCountSelector = $(this).data('count-selector');
-            var dataOnload = eval(onLoad || $(this).data('onLoad') || undefined);
+            var dataOnload = eval($(this).data('onLoad') || undefined);
             var filterID = $(this).data('ajax-filterid') != undefined ? '#' + $(this).data('ajax-filterid') : null;
             var filterType = $(this).data('ajax-filtertype') || null;
             var pageSize = $(this).data('ajax-pagesize') || undefined;
@@ -17,7 +18,6 @@
             var append = $(this).data('ajax-append') || false;
             var customFilters = eval($(this).data('customFilters') || undefined);
             var renderTemplate = eval($(this).data('renderTemplate') || undefined);
-
 
             this.init = function () {
                 $(pagerID).hide();
@@ -27,13 +27,13 @@
                 } else {
                     if (requestType != 'delete') {
                         $(document).on(event, trigger, function (e) {
-                            $(that).empty();
+                            $element.empty();
                             if (pagerID != null)
                                 $(pagerID).data('page', 0);
                             that.quickLoad(e);
                         });
                     } else {
-                        $(that).on(event, function () {
+                        $element.on(event, function () {
                             that.quickDelete();
                         });
                     }
@@ -46,7 +46,7 @@
             this.quickDelete = function () {
                 if (confirm(deleteConfirm)) {
                     $.ajax({ url: url, type: requestType }).done(function () {
-                        $(that).parents(deleteFilter).remove();
+                        $element.parents(deleteFilter).remove();
                         $(dataCountSelector).html(" " + ($(dataCountSelector).html() - 1));
                     });
                 }
@@ -72,8 +72,8 @@
             }
 
             this.quickLoad = function (e) {
-                var html = $(that).html();
-                $(that).append("<b class='quickLoad'> loading...</b>");
+                var html = $element.html();
+                $element.append("<b class='quickLoad'> loading...</b>");
                 var urlBuilder = url;
                 var filterVal = '';
                 if (filterID != null) {
@@ -116,19 +116,21 @@
 
             this.loaded = function (data) {
                 if (renderTemplate) {
-                    renderTemplate(data, $(that));
+                    renderTemplate(data, $element);
                 }
                 else
-                    $(that).html(data);
+                    $element.html(data);
                 $(".quickLoad").remove();
 
                 $(pagerID).fadeIn();
-                $(that).find('[data-ajax-url]').dataQuickAjax(dataOnload);
-                $(that).trigger({
+                $element.find('[data-ajax-url]').dataQuickAjax(dataOnload);
+                $element.trigger({
                     type: "dataAjaxLoaded"
                 });
+                if(onLoad)
+                    onLoad($element);
                 if (dataOnload != undefined)
-                    dataOnload($(that));
+                    dataOnload($element);
             }
 
             this.trigger = function () {
@@ -147,3 +149,10 @@
 $(document).ready(function () {
     $('[data-ajax-url]').dataQuickAjax();
 });
+
+ $.fn.dataQuickAjax.initilaze = function ($element) {
+    if ($element)
+        $element.find('[data-ajax-url]').dataQuickAjax();
+    else
+        $('[data-ajax-url]').dataQuickAjax();
+}
