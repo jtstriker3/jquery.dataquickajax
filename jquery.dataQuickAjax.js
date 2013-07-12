@@ -81,8 +81,13 @@
                         filterVal = that.getFilterVal($(e.target));
                     else
                         filterVal = that.getFilterVal($(filterID));
-                    if (filterVal.length)
-                        urlBuilder += '?filter=' + filterVal;
+                      
+		    if (filterVal.length) {
+                        if (url.indexOf("$filter" !== -1))
+                            url.replace("$filter", filterVal);
+                        else
+                            urlBuilder += '?filter=' + filterVal;
+                    }
                 }
                 if (pageSize != undefined) {
                     if (filterVal.length)
